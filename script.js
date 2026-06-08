@@ -13,7 +13,7 @@
 // Example:
 // const SCRIPT_URL = "https://script.google.com/macros/s/xxxxxxxxxxxxxxxx/exec";
 
-const SCRIPT_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4pzXelULMWpxYU0OaqjZHoIub7_o5Mpf8pepDKJ5tF6dNbvGQsL4S03SZ1X4mLalR/exec";
 
 /* ===============================
    GAME SETTINGS
