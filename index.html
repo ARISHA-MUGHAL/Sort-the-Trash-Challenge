@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Sort the Trash Challenge</title>
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- ================= ECO BACKGROUND ================= -->
+  <div class="eco-bg">
+    <span class="eco-shape shape-1">🍃</span>
+    <span class="eco-shape shape-2">♻️</span>
+    <span class="eco-shape shape-3">🌱</span>
+    <span class="eco-shape shape-4">🌿</span>
+  </div>
+
+  <main class="app-container">
+
+    <!-- ================= WELCOME SCREEN ================= -->
+    <section id="welcomeScreen" class="screen active">
+      <div class="hero-card">
+
+        <div class="badge">
+          Environmental Awareness Activity
+        </div>
+
+        <h1>Sort the Trash Challenge</h1>
+
+        <p class="subtitle">
+          Drag the waste item into the correct dustbin.
+        </p>
+
+        <p class="intro-text">
+          A 5-minute interactive waste segregation game to test your knowledge
+          of hazardous, recyclable, reusable, organic, and food by-product waste.
+        </p>
+
+        <div class="rules-grid">
+          <div class="rule-card">
+            <span>⏱️</span>
+            <h3>Duration</h3>
+            <p>5 Minutes</p>
+          </div>
+
+          <div class="rule-card">
+            <span>✅</span>
+            <h3>Correct</h3>
+            <p>+10 Points</p>
+          </div>
+
+          <div class="rule-card">
+            <span>❌</span>
+            <h3>Incorrect</h3>
+            <p>-10 Points</p>
+          </div>
+
+          <div class="rule-card">
+            <span>🏆</span>
+            <h3>Leaderboard</h3>
+            <p>Company Ranking</p>
+          </div>
+        </div>
+
+        <button class="primary-btn" id="startChallengeBtn">
+          Start Challenge
+        </button>
+
+      </div>
+    </section>
+
+    <!-- ================= EMPLOYEE DETAIL SCREEN ================= -->
+    <section id="employeeScreen" class="screen">
+      <div class="form-card">
+
+        <div class="section-label">
+          Employee Details
+        </div>
+
+        <h2>Enter Your Details</h2>
+
+        <p class="form-note">
+          Please enter your details before starting the challenge.
+        </p>
+
+        <form id="employeeForm">
+
+          <div class="form-group">
+            <label for="employeeName">Employee Name</label>
+            <input
+              type="text"
+              id="employeeName"
+              placeholder="Enter your name"
+              autocomplete="off"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="department">Department</label>
+            <select id="department" required>
+              <option value="">Select department</option>
+              <option value="Admin">Admin</option>
+              <option value="Engineering">Engineering</option>
+              <option value="Production">Production</option>
+              <option value="Packing">Packing</option>
+              <option value="Quality Assurance">Quality Assurance</option>
+              <option value="Quality Control">Quality Control</option>
+              <option value="Food Safety">Food Safety</option>
+              <option value="EHS">EHS</option>
+              <option value="Warehouse">Warehouse</option>
+              <option value="FGS">FGS</option>
+              <option value="RMPM">RMPM</option>
+              <option value="HR">HR</option>
+              <option value="Finance">Finance</option>
+              <option value="IT">IT</option>
+              <option value="Procurement">Procurement</option>
+              <option value="Security">Security</option>
+              <option value="Canteen">Canteen</option>
+              <option value="Utilities">Utilities</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="designation">Designation</label>
+            <input
+              type="text"
+              id="designation"
+              placeholder="Enter your designation"
+              autocomplete="off"
+              required
+            />
+          </div>
+
+          <p id="formError" class="error-text"></p>
+
+          <button type="submit" class="primary-btn">
+            Begin Game
+          </button>
+
+        </form>
+      </div>
+    </section>
+
+    <!-- ================= GAME SCREEN ================= -->
+    <section id="gameScreen" class="screen game-screen">
+
+      <!-- TOP BAR -->
+      <header class="game-topbar">
+
+        <div class="topbar-item">
+          <span>Score</span>
+          <strong id="scoreDisplay">0</strong>
+        </div>
+
+        <div class="topbar-title">
+          <h2>Sort the Trash Challenge</h2>
+          <p id="progressDisplay">Item 1 / 100</p>
+        </div>
+
+        <div class="topbar-item timer-box">
+          <span>Time</span>
+          <strong id="timerDisplay">05:00</strong>
+        </div>
+
+      </header>
+
+      <!-- MAIN GAME AREA -->
+      <div class="drag-game-area">
+
+        <!-- WASTE ITEM CARD -->
+        <div class="waste-stage">
+
+          <div class="waste-card" id="wasteCard">
+
+            <div class="waste-card-glow"></div>
+
+            <div class="waste-icon" id="wasteIcon">
+              🗑️
+            </div>
+
+            <p class="waste-label">
+              Waste Item
+            </p>
+
+            <h2 id="wasteItemName">
+              Grease Waste
+            </h2>
+
+            <p class="drag-instruction">
+              Drag this item into the correct dustbin
+            </p>
+
+            <div
+              class="draggable-waste"
+              id="draggableWaste"
+              draggable="true"
+              role="button"
+              aria-label="Drag waste item to correct dustbin"
+            >
+              <span id="dragItemIcon">🗑️</span>
+              <strong id="dragItemName">Grease Waste</strong>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- DUSTBIN AREA -->
+        <div class="bins-section">
+
+          <div class="bins-heading">
+            <span>Choose the correct bin</span>
+            <p>Drop the waste item into one of the five dustbins below.</p>
+          </div>
+
+          <div class="dustbin-grid" id="dustbinGrid">
+            <!-- Dustbins will be generated by script.js -->
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= RESULT SCREEN ================= -->
+    <section id="resultScreen" class="screen">
+      <div class="result-card">
+
+        <div class="result-icon">
+          🏆
+        </div>
+
+        <h2 id="resultHeading">
+          Challenge Completed!
+        </h2>
+
+        <p class="result-subtitle">
+          Thank you for participating in the Sort the Trash Challenge.
+        </p>
+
+        <div class="final-score">
+          <span>Your Score</span>
+          <strong id="finalScore">0</strong>
+        </div>
+
+        <div class="result-grid">
+
+          <div class="result-item">
+            <span>Employee Name</span>
+            <strong id="resultName">-</strong>
+          </div>
+
+          <div class="result-item">
+            <span>Department</span>
+            <strong id="resultDepartment">-</strong>
+          </div>
+
+          <div class="result-item">
+            <span>Designation</span>
+            <strong id="resultDesignation">-</strong>
+          </div>
+
+          <div class="result-item">
+            <span>Correct Answers</span>
+            <strong id="correctCount">0</strong>
+          </div>
+
+          <div class="result-item">
+            <span>Incorrect Answers</span>
+            <strong id="incorrectCount">0</strong>
+          </div>
+
+          <div class="result-item">
+            <span>Total Attempted</span>
+            <strong id="attemptedCount">0</strong>
+          </div>
+
+          <div class="result-item">
+            <span>Accuracy</span>
+            <strong id="accuracyDisplay">0%</strong>
+          </div>
+
+          <div class="result-item">
+            <span>Time Taken</span>
+            <strong id="timeTakenDisplay">00:00</strong>
+          </div>
+
+        </div>
+
+        <p id="submitStatus" class="submit-status"></p>
+
+        <div class="button-row">
+          <button class="primary-btn" id="viewLeaderboardBtn">
+            View Leaderboard
+          </button>
+
+          <button class="secondary-btn" id="playAgainBtn">
+            Play Again
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= LEADERBOARD SCREEN ================= -->
+    <section id="leaderboardScreen" class="screen">
+      <div class="leaderboard-card">
+
+        <div class="leaderboard-header">
+          <div>
+            <div class="section-label">
+              Company Ranking
+            </div>
+            <h2>Leaderboard</h2>
+          </div>
+
+          <button class="secondary-btn small-btn" id="backToResultBtn">
+            Back
+          </button>
+        </div>
+
+        <div class="leaderboard-filter">
+          <label for="leaderboardDepartment">
+            Filter by Department
+          </label>
+
+          <select id="leaderboardDepartment">
+            <option value="Overall">Overall Leaderboard</option>
+            <option value="Admin">Admin</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Production">Production</option>
+            <option value="Packing">Packing</option>
+            <option value="Quality Assurance">Quality Assurance</option>
+            <option value="Quality Control">Quality Control</option>
+            <option value="Food Safety">Food Safety</option>
+            <option value="EHS">EHS</option>
+            <option value="Warehouse">Warehouse</option>
+            <option value="FGS">FGS</option>
+            <option value="RMPM">RMPM</option>
+            <option value="HR">HR</option>
+            <option value="Finance">Finance</option>
+            <option value="IT">IT</option>
+            <option value="Procurement">Procurement</option>
+            <option value="Security">Security</option>
+            <option value="Canteen">Canteen</option>
+            <option value="Utilities">Utilities</option>
+            <option value="Maintenance">Maintenance</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Designation</th>
+                <th>Score</th>
+                <th>Accuracy</th>
+              </tr>
+            </thead>
+
+            <tbody id="leaderboardBody">
+              <tr>
+                <td colspan="6" class="empty-table">
+                  Leaderboard will appear here after connecting Google Sheet.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <button class="primary-btn" id="backToHomeBtn">
+          Back to Home
+        </button>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= FEEDBACK MODAL ================= -->
+  <div id="feedbackModal" class="modal-overlay">
+
+    <div class="feedback-card" id="feedbackCard">
+
+      <div class="feedback-icon" id="feedbackIcon">
+        ✅
+      </div>
+
+      <h2 id="feedbackTitle">
+        Correct!
+      </h2>
+
+      <p class="feedback-item">
+        <strong>Waste Item:</strong>
+        <span id="feedbackWasteItem">Grease Waste</span>
+      </p>
+
+      <p class="feedback-category">
+        <strong>Correct Bin:</strong>
+        <span id="feedbackBin">Blue Bin – Hazardous Waste</span>
+      </p>
+
+      <div class="why-box">
+        <strong>Why?</strong>
+        <p id="feedbackExplanation">
+          This waste should be placed in the correct bin as per the waste segregation chart.
+        </p>
+      </div>
+
+      <button class="primary-btn" id="continueBtn">
+        Continue
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- ================= SCRIPT FILES ================= -->
+  <script src="wasteData.js"></script>
+  <script src="script.js"></script>
+
+</body>
+</html>
