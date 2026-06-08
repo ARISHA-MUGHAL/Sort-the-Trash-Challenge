@@ -2,6 +2,7 @@
    SORT THE TRASH CHALLENGE
    appsScript.gs
    Google Sheet Leaderboard Backend
+   One Attempt Per Email ID
 ================================ */
 
 const SHEET_NAME = "Responses";
@@ -9,6 +10,7 @@ const SHEET_NAME = "Responses";
 const HEADERS = [
   "Timestamp",
   "Name",
+  "Email ID",
   "Department",
   "Designation",
   "Score",
@@ -22,7 +24,7 @@ const HEADERS = [
 
 /* ===============================
    GET REQUEST
-   Used to fetch leaderboard
+   Used for leaderboard and email check
 ================================ */
 
 function doGet(e) {
@@ -34,6 +36,16 @@ function doGet(e) {
       const leaderboard = getLeaderboard(department);
 
       return createJsonResponse(leaderboard);
+    }
+
+    if (action === "checkEmail") {
+      const email = cleanText(e.parameter.email).toLowerCase();
+      const exists = checkEmailExists(email);
+
+      return createJsonResponse({
+        status: "success",
+        exists: exists
+      });
     }
 
     return createJsonResponse({
@@ -74,6 +86,7 @@ function doPost(e) {
     const timestamp = new Date();
 
     const name = cleanText(data.name);
+    const email = cleanText(data.email).toLowerCase();
     const department = cleanText(data.department);
     const designation = cleanText(data.designation);
 
@@ -86,16 +99,31 @@ function doPost(e) {
     const timeTaken = cleanText(data.timeTaken);
     const timeTakenSeconds = Number(data.timeTakenSeconds) || 0;
 
-    if (!name || !department || !designation) {
+    if (!name || !email || !department || !designation) {
       return createJsonResponse({
         status: "error",
-        message: "Name, department, and designation are required."
+        message: "Name, email ID, department, and designation are required."
+      });
+    }
+
+    if (!isValidEmail(email)) {
+      return createJsonResponse({
+        status: "error",
+        message: "Please enter a valid email ID."
+      });
+    }
+
+    if (checkEmailExists(email)) {
+      return createJsonResponse({
+        status: "error",
+        message: "This email ID has already submitted one attempt."
       });
     }
 
     sheet.appendRow([
       timestamp,
       name,
+      email,
       department,
       designation,
       score,
@@ -106,6 +134,8 @@ function doPost(e) {
       timeTaken,
       timeTakenSeconds
     ]);
+
+    sheet.autoResizeColumns(1, HEADERS.length);
 
     return createJsonResponse({
       status: "success",
@@ -162,6 +192,30 @@ function setupHeaders(sheet) {
 }
 
 /* ===============================
+   CHECK IF EMAIL ALREADY EXISTS
+================================ */
+
+function checkEmailExists(email) {
+  if (!email) {
+    return false;
+  }
+
+  const sheet = getOrCreateSheet();
+  const values = sheet.getDataRange().getValues();
+
+  if (values.length <= 1) {
+    return false;
+  }
+
+  const rows = values.slice(1);
+
+  return rows.some(function (row) {
+    const savedEmail = String(row[2] || "").trim().toLowerCase();
+    return savedEmail === email;
+  });
+}
+
+/* ===============================
    GET LEADERBOARD
 ================================ */
 
@@ -179,15 +233,16 @@ function getLeaderboard(departmentFilter) {
     return {
       timestamp: row[0],
       name: row[1],
-      department: row[2],
-      designation: row[3],
-      score: Number(row[4]) || 0,
-      correct: Number(row[5]) || 0,
-      incorrect: Number(row[6]) || 0,
-      attempted: Number(row[7]) || 0,
-      accuracy: Number(row[8]) || 0,
-      timeTaken: row[9],
-      timeTakenSeconds: Number(row[10]) || 99999
+      email: row[2],
+      department: row[3],
+      designation: row[4],
+      score: Number(row[5]) || 0,
+      correct: Number(row[6]) || 0,
+      incorrect: Number(row[7]) || 0,
+      attempted: Number(row[8]) || 0,
+      accuracy: Number(row[9]) || 0,
+      timeTaken: row[10],
+      timeTakenSeconds: Number(row[11]) || 99999
     };
   });
 
@@ -249,7 +304,17 @@ function cleanText(value) {
 }
 
 /* ===============================
-   TEST FUNCTION
+   EMAIL VALIDATION
+================================ */
+
+function isValidEmail(email) {
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailPattern.test(email);
+}
+
+/* ===============================
+   OPTIONAL TEST FUNCTION
+   Run manually inside Apps Script
 ================================ */
 
 function testSubmitScore() {
@@ -258,6 +323,7 @@ function testSubmitScore() {
   sheet.appendRow([
     new Date(),
     "Test Employee",
+    "test@outlook.com",
     "EHS",
     "Executive",
     120,
@@ -268,10 +334,12 @@ function testSubmitScore() {
     "05:00",
     300
   ]);
+
+  sheet.autoResizeColumns(1, HEADERS.length);
 }
 
 /* ===============================
-   CLEAR DATA
+   OPTIONAL CLEAR DATA
    Use carefully
 ================================ */
 
