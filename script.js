@@ -2,17 +2,18 @@
    SORT THE TRASH CHALLENGE
    UPDATED script.js
    5 Dustbins + Drag & Drop Logic
+   One Attempt Per Email ID
 ================================ */
 
 /* ===============================
    GOOGLE APPS SCRIPT URL
 ================================ */
 
-// Paste your deployed Google Apps Script Web App URL here later.
+// Paste your deployed Google Apps Script Web App URL here.
 // Example:
 // const SCRIPT_URL = "https://script.google.com/macros/s/xxxxxxxxxxxxxxxx/exec";
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzO_8fe5wpVQb_1DC9UjEdm6Vyg3wF3uolfUocdUGdikNCksLyJk03Otpz8LcQayQ/exec";
+const SCRIPT_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
 
 /* ===============================
    GAME SETTINGS
@@ -122,6 +123,7 @@ const FALLBACK_WASTE_ITEMS = [
 
 let employeeData = {
   name: "",
+  email: "",
   department: "",
   designation: ""
 };
@@ -159,6 +161,7 @@ const startChallengeBtn = document.getElementById("startChallengeBtn");
 
 const employeeForm = document.getElementById("employeeForm");
 const employeeNameInput = document.getElementById("employeeName");
+const employeeEmailInput = document.getElementById("employeeEmail");
 const departmentInput = document.getElementById("department");
 const designationInput = document.getElementById("designation");
 const formError = document.getElementById("formError");
@@ -274,16 +277,32 @@ function showScreen(screenName) {
    EMPLOYEE FORM
 ================================ */
 
-function handleEmployeeFormSubmit(event) {
+async function handleEmployeeFormSubmit(event) {
   event.preventDefault();
 
   const name = employeeNameInput.value.trim();
+  const email = employeeEmailInput.value.trim().toLowerCase();
   const department = departmentInput.value.trim();
   const designation = designationInput.value.trim();
 
-  if (!name || !department || !designation) {
+  if (!name || !email || !department || !designation) {
     formError.textContent =
       "Please complete all required fields before starting the game.";
+    return;
+  }
+
+  if (!isValidEmail(email)) {
+    formError.textContent = "Please enter a valid email ID.";
+    return;
+  }
+
+  formError.textContent = "Checking previous attempt...";
+
+  const alreadyPlayed = await checkEmailAlreadyPlayed(email);
+
+  if (alreadyPlayed) {
+    formError.textContent =
+      "This email ID has already been used. Only one attempt is allowed per email ID.";
     return;
   }
 
@@ -291,6 +310,7 @@ function handleEmployeeFormSubmit(event) {
 
   employeeData = {
     name,
+    email,
     department,
     designation
   };
@@ -348,6 +368,37 @@ function getBins() {
   }
 
   return DEFAULT_BINS;
+}
+
+/* ===============================
+   EMAIL CHECK
+================================ */
+
+async function checkEmailAlreadyPlayed(email) {
+  if (!SCRIPT_URL || SCRIPT_URL === "PASTE_YOUR_WEB_APP_URL_HERE") {
+    const localResults = getLocalResults();
+
+    return localResults.some((item) => {
+      return String(item.email || "").toLowerCase() === email;
+    });
+  }
+
+  try {
+    const response = await fetch(
+      `${SCRIPT_URL}?action=checkEmail&email=${encodeURIComponent(email)}`
+    );
+
+    const data = await response.json();
+
+    return data.exists === true;
+  } catch (error) {
+    console.error("Email check failed:", error);
+
+    formError.textContent =
+      "Could not verify email ID. Please check internet connection and try again.";
+
+    return true;
+  }
 }
 
 /* ===============================
@@ -482,14 +533,11 @@ function handleDrop(event) {
 
 /* ===============================
    MOBILE / TOUCH DRAG SUPPORT
-   Pointer-based custom drag
 ================================ */
 
 function handlePointerDown(event) {
   if (!currentDraggedItem) return;
 
-  // Mouse users can use normal HTML drag.
-  // Pointer drag is mainly for touch devices.
   if (event.pointerType === "mouse") {
     return;
   }
@@ -563,14 +611,18 @@ function moveDragClone(x, y) {
   const offsetX = dragClone.offsetWidth / 2;
   const offsetY = dragClone.offsetHeight / 2;
 
-  dragClone.style.transform = `translate(${x - offsetX}px, ${y - offsetY}px) scale(1.04)`;
+  dragClone.style.transform = `translate(${x - offsetX}px, ${
+    y - offsetY
+  }px) scale(1.04)`;
 }
 
 function cleanupPointerDrag() {
   isPointerDragging = false;
 
-  draggableWaste.classList.remove("dragging");
-  draggableWaste.style.visibility = "visible";
+  if (draggableWaste) {
+    draggableWaste.classList.remove("dragging");
+    draggableWaste.style.visibility = "visible";
+  }
 
   if (dragClone) {
     dragClone.remove();
@@ -753,6 +805,7 @@ function endGame() {
 
   submitResultToLeaderboard({
     name: employeeData.name,
+    email: employeeData.email,
     department: employeeData.department,
     designation: employeeData.designation,
     score,
@@ -790,7 +843,7 @@ function calculateTimeTakenSeconds() {
 ================================ */
 
 async function submitResultToLeaderboard(result) {
-  if (!SCRIPT_URL) {
+  if (!SCRIPT_URL || SCRIPT_URL === "PASTE_YOUR_WEB_APP_URL_HERE") {
     submitStatus.textContent =
       "Score saved locally. Add Google Apps Script URL to enable company leaderboard.";
     saveLocalResult(result);
@@ -868,7 +921,7 @@ async function loadLeaderboard() {
     </tr>
   `;
 
-  if (!SCRIPT_URL) {
+  if (!SCRIPT_URL || SCRIPT_URL === "PASTE_YOUR_WEB_APP_URL_HERE") {
     const localResults = getLocalResults();
     renderLeaderboard(localResults, selectedDepartment);
     return;
@@ -918,8 +971,10 @@ function renderLeaderboard(results, selectedDepartment = "Overall") {
     const accuracyA = Number(a.accuracy || a.Accuracy) || 0;
     const accuracyB = Number(b.accuracy || b.Accuracy) || 0;
 
-    const timeA = Number(a.timeTakenSeconds || a["Time Taken Seconds"]) || 99999;
-    const timeB = Number(b.timeTakenSeconds || b["Time Taken Seconds"]) || 99999;
+    const timeA =
+      Number(a.timeTakenSeconds || a["Time Taken Seconds"]) || 99999;
+    const timeB =
+      Number(b.timeTakenSeconds || b["Time Taken Seconds"]) || 99999;
 
     if (scoreB !== scoreA) return scoreB - scoreA;
     if (accuracyB !== accuracyA) return accuracyB - accuracyA;
@@ -967,11 +1022,13 @@ function resetGame() {
 
   employeeData = {
     name: "",
+    email: "",
     department: "",
     designation: ""
   };
 
   employeeNameInput.value = "";
+  employeeEmailInput.value = "";
   departmentInput.value = "";
   designationInput.value = "";
   formError.textContent = "";
@@ -1018,6 +1075,11 @@ function shuffleArray(array) {
   }
 
   return copiedArray;
+}
+
+function isValidEmail(email) {
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailPattern.test(email);
 }
 
 function escapeHTML(value) {
